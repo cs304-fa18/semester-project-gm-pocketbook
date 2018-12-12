@@ -1,0 +1,142 @@
+<!--first, just make page display the current available folders-->
+
+{% extends "base.html" %}
+  
+  {% block content %}
+  
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    
+    <h1>{{campName}}</h1>
+    
+    <!--change the beginning of the word to all caps-->
+    {% for key, items in comps.items() %}
+    
+        <h2>{{key}}</h2>
+        <p><a href="">Add new {{ key }}</a></p>
+        
+        <div id="{{key}}feat" hidden>
+            <h3 id="{{key}}name" hidden>test</h3>
+            <h3 id="{{key}}body" hidden>test</h3>
+            <h3 id="{{key}}file" hidden>test</h3>
+            <h3 id="{{key}}uid" hidden>test</h3>
+            <h3 id="{{key}}class" hidden>test</h3>
+            <h3 id="{{key}}race" hidden>test</h3>
+            <h3 id="{{key}}alignment" hidden>test</h3>
+            <h3 id="{{key}}map" hidden>test</h3>
+            <h3 id="{{key}}descrip" hidden>test</h3>
+        </div>
+        
+        
+         <table id="{{key}}">
+            <tr>
+                <th>Name</th>
+                <th>View Data</th>
+                <th>Update</th>
+                <th>Change Permissions</th>
+            </tr>
+        
+        {% for item in items%}
+            <tr data-uid={{item.uid}} data-body="{{item.body}}" 
+                data-file={{item.file}} data-name="{{item.name}}" 
+                data-class="{{item.class}}" data-race="{{item.race}}"
+                data-align="{{item.alignment}}"  data-map="{{item.map}}"
+                data-descrip="{{item.descrip}}" id="{{item.cid}}" data-users={{item.perms}} 
+                data-key={{key}}>
+                <td class="name">{{ item.name }}</td>
+                <td><button class="view-button">View Data</button></td>
+                <td><a href="{{item.url}}"> Update</a></td>
+                <td><button class="perms-button">Change Permissions</button></td> 
+            </tr>
+            <tr data-users="{{item.perms}}" data-allowed="{{item.perms.allowed.values()}}" hidden>
+                <td colspan="4"> 
+                    <form method="post" action="" name="{{item.cid}}_form" id="form">
+                        
+                        <label>Check the box next to the users you would like to see this item:</label> <br>
+                        
+                        <input type="hidden" name="cid" value="{{item.cid}}">
+                        <input type="hidden" name="key" value="{{key}}">
+                        <input type="hidden" name="nam" value="{{item.name}}">
+                        
+                        {% for num, player in item.perms.all.items() %}
+
+                        <label class="permission">{{player}} <input type="checkbox" name="plays" value="{{num}}" id="play{{num}}{{key}}"></label>
+                        
+                        {% endfor %}
+
+                        <input type="submit" name="giveperm{{cid}}{{key}}" value="Submit" class="sub-button">
+                    </form>
+                
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+        
+        <script>
+        /* global $ */
+        
+        $("#{{key}} .view-button").on('click', function(event) {
+            $('#{{key}}feat').hide()
+
+            // get movie data from neighbors by accessing parent tr, then child by class
+            var userid = $(this).closest("tr").data("uid")
+            var nm = $(this).closest("tr").data("name")
+            var filename = $(this).closest("tr").data("file")
+            var textbod = $(this).closest("tr").data("body")
+            var align = $(this).closest("tr").data("align")
+            var clas = $(this).closest("tr").data("class")
+            var race = $(this).closest("tr").data("race")
+            var mp = $(this).closest("tr").data("map")
+            var descr = $(this).closest("tr").data("descrip")
+            
+            var vars = [userid, nm, filename, textbod, align, clas, race, 
+                mp, descr]
+            var labs = ["Creator", "Name", "File", "Text", "Alignment", 
+                "Class", "Race", "Map", "Description"]
+            var elms = ["#{{key}}uid", "#{{key}}name", "#{{key}}file", 
+                "#{{key}}body", "#{{key}}align", "#{{key}}class", 
+                "#{{key}}race", "#{{key}}map", "#{{key}}descrip"]
+            
+            //update div text
+            var i
+            for (i=0; i < vars.length; i++){
+                if (vars[i]!="None" && vars[i]!=""){
+                    $(elms[i]).text(labs[i]+ ": " + vars[i])
+                }
+            }
+            
+            for (i=0; i < vars.length; i++){
+                if (vars[i]!="None" && vars[i]!=""){
+                    $(elms[i]).show()
+                }
+            }
+
+            $('#{{key}}feat').slideDown()
+        })
+        $("#{{key}} .update-button").on('click', function() {
+            if "{{key}}"
+        })
+        
+        //SOME OF THE CODE BELOW CAN ADD FUNCTIONALITY LATER
+        $("#{{key}} .perms-button").on('click', "", function(event) {
+            $(this).closest("tr").next("tr").show()
+            // console.log($(this).closest("tr").next("tr").data("allowed"))
+            
+            // var allow_str = $(this).closest("tr").next("tr").data("allowed")
+            // allow_str = allow_str.slice(2,-2) 
+            // var allow = allow_str.split("', '")
+
+            // var i
+            // for (i=0; i < allow.length; i++){
+            //     var inpt = "input:checkbox[value=".concat(allow[i],"]")
+            //     console.log(inpt)
+            //     $("input:checkbox[value=" + allow[i] +"]").attr("checked", true);
+            // }
+        })
+        
+        
+        </script>
+        
+    {% endfor %}
+    
+{% endblock %}
+

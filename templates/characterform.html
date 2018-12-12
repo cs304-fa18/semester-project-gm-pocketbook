@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+  
+  {% block content %}
+  
+    <p><a href="{{url_for('campPage')}}">Campaign Home page</a></p>
+  
+  <h1> Update Character</h1>
+  <p>Use "None" or "null" to set a field to null</p>
+  
+  <form method=POST action="/update/{{character.cid}}">
+        <table>
+      <tr>
+        <td><label for="character-name">Name</label></td>
+        <td><input name='character-name' value="{{character.name}}"></td> 
+      </tr>
+      <tr>
+        <td><label for="class">Class</label></td>
+        <td><input name='class' value="{{character.class}}"></td>
+      </tr>
+      <tr>
+        <td><label for="race">Race</label></td>
+        <td><input name='race' value="{{character.race}}"></td>
+      </tr>
+      <tr>
+        <td><label for="alignment">Alignment</label></td>
+        <td><input name='alignment' value= "{{character.alignment}}"></td>
+      </tr>
+      
+     
+    </table>
+    <input type="submit" name="submit" value="update">
+    <input type="submit" name="submit" value="delete">
+  </form>1
+ </div>
+
+{% endblock %}

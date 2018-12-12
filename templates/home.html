@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+  
+  {% block content %}
+  
+        {% if username %}
+            <h3>Welcome {{username}}!</h3>
+            <p>Not {{username}}? <a href="{{ url_for('logout') }}">Log out</a></p>
+            <p>Select your campaign:</p>
+            <ul>
+                <form method="POST">
+                {% for campaign in campaigns %}
+                <li><button type="submit" name="campid" formaction = "{{ url_for('setCamp') }}" value = "{{ campaign.cid }}">{{ campaign.name }}</button></li>
+                {% endfor %}
+                </form>
+            </ul>
+            <p> <a href="{{ url_for('newCamp') }}">Create New Campaign!</a></p>
+        {% else %}
+            <h3>Log in!</h3>
+            <form action="{{ url_for('home') }}" method="POST">
+              <p><label for="Username">Username: <input type="text" name="user" pattern="^\S+$"></label></p>
+              <p><label for="Password">Password: <input type="password" name="password"></label></p>
+              <p><input type="submit" value="login"></p>
+             </form>
+             <p>Don't have an account? <a href="{{ url_for('register') }}">Register Here.</a></p>
+        {% endif %}
+        
+    {% endblock %}

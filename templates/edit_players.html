@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+    {% block content %}
+        <h1>{{ name }}</h1>
+        <form action="" method = "POST">
+            <p><label for="Players for this campaign, separated by spaces">
+                Players for this campaign, separated by spaces:
+            </p>
+            <p>
+                <textarea name="players" rows="4" cols="50">{{ players }}</textarea></label>
+            </p>
+            <p>
+                <input type="submit" value="submit">
+            </p>
+        </form>
+        
+    {% endblock %}

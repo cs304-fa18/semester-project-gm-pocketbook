@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+  
+  {% block content %}
+  
+    <h1>{{campName}}</h1>
+    
+    <!--Link to add new players to campaign-->
+    {% if isDM %}
+        <p><a href = "{{ url_for('editPlayers') }}">Add Players to this Campaign</a></p>
+    {% endif %}
+    
+    <!--Link to add new item type to campaign-->
+    <p><a href = "{{ url_for('newType') }}">Add a new item type to this campaign.</a></p>
+    
+    <!--Add a new misc item of any type-->
+    <!--NOTE: THIS CURRENTLY REDIRECTS TO CREATING A NEW ITEM TYPE. ONCE WE 
+        HAVE THE URL FOR CREATING A NEW MISC ITEM, CHANGE THIS URL-->
+    <p><a href = "{{ url_for('newType') }}">Add a miscellaneous item.</a></p>
+
+    <!--for each type in list of all items that the user can access-->
+    {% for key, items in comps.items() %}
+        
+        <h2>{{key}}</h2>
+        <!--Link to add new item to campaign-->
+        <p><a href="">Add new {{ key }}</a></p>
+        
+        <!--List of all features that an item can have, will show when user 
+        clicks on "view info"-->
+        <div id="{{key}}feat" hidden>
+            <h3 id="{{key}}name" hidden>test</h3>
+            <h3 id="{{key}}body" hidden>test</h3>
+            <h3 id="{{key}}file" hidden>test</h3>
+            <h3 id="{{key}}uid" hidden>test</h3>
+            <h3 id="{{key}}class" hidden>test</h3>
+            <h3 id="{{key}}race" hidden>test</h3>
+            <h3 id="{{key}}alignment" hidden>test</h3>
+            <h3 id="{{key}}map" hidden>test</h3>
+            <h3 id="{{key}}descrip" hidden>test</h3>
+        </div>
+        
+        <!--for each type of item, make a table with items-->
+         <table id="{{key}}">
+            <tr>
+                <th>Name</th>
+                <th>View Data</th>
+                <th>Update</th>
+                <th>Change Permissions</th>
+            </tr>
+        
+        <!--For each item in type-->
+        {% for item in items%}
+            <tr data-uid={{item.uid}} data-body="{{item.body}}" 
+                data-file={{item.file}} data-name="{{item.name}}" 
+                data-class="{{item.class}}" data-race="{{item.race}}"
+                data-align="{{item.alignment}}"  data-map="{{item.map}}"
+                data-descrip="{{item.descrip}}" id="{{item.cid}}" data-users={{item.perms}} 
+                data-key={{key}}>
+                <td class="name">{{ item.name }}</td>
+                <!--Button to link to view data for each item-->
+                <td><button class="view-button">View Data</button></td>
+                <!--Button to link to update page for each item-->
+                <td>
+                    <form method="POST" name="update_form">
+                        <button type="submit" name="submit" value="other" 
+                        class="sub-button" id="other">Update</button>
+                        <input type="hidden" name="cid" value="{{item.cid}}">
+                        <input type="hidden" name="key" value="{{key}}">
+                    </form>
+                </td>
+                <!--Button to link to change permissions for each item-->
+                <td><button class="perms-button">Change Permissions</button></td> 
+            </tr>
+            <!--A table row below the main item row that will only show if user
+            clicks on "change permissions"-->
+            <tr data-users="{{item.perms}}" data-allowed="{{item.perms.allowed.values()}}"
+                data-itemid={{item.cid}} data-keys={{key}} hidden>
+                <td colspan="4"> 
+                    <!--A form with all users and check boxes-->
+                    <form method="post" action="" name="perm_form" id="form">
+                        
+                        <label>Check the box next to the users you would like to see this item:</label> <br>
+                        
+                        <input type="hidden" name="cid" value="{{item.cid}}">
+                        <input type="hidden" name="key" value="{{key}}">
+                        <input type="hidden" name="nam" value="{{item.name}}">
+                        
+                        <!--For each user, make a label and a checkbox-->
+                        {% for num, player in item.perms.all.items() %}
+                            <!--If player currently has permission to view an 
+                            item, check the box next to their name-->
+                            {% if player in item.perms.allowed.values() %}
+                                <label class="permission" data-player="{{player}}" 
+                                    data-key={{key}} data-key={{num}}> {{player}} 
+                                <input type="checkbox" name="plays" value="{{num}}" 
+                                    id="{{player}}{{item.cid}}{{key}}" checked></label>
+                            <!--Otherwise, keep the box unchecked-->
+                            {% else %}
+                                <label class="permission" data-player="{{player}}" 
+                                    data-key={{key}} data-key={{num}}> {{player}} 
+                                <input type="checkbox" name="plays" value="{{num}}" 
+                                    id="{{player}}{{item.cid}}{{key}}"></label>
+                            {% endif %}
+                        
+                        {% endfor %}
+
+                        <button type="submit" name="submit" value="giveperm" 
+                        class="sub-button" id="giveperm">Submit</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </table>
+        
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        
+        <script>
+        /* global $ */
+        
+        //when a the "view info" button is clicked for an item
+        $("#{{key}} .view-button").on('click', function(event) {
+            //hide previously shown info, if available
+            $('#{{key}}feat').hide()
+            
+            //get data corresponding to item clicked
+            var userid = $(this).closest("tr").data("uid")
+            //we will show the username instead of the uid when we 
+            //incorperate Ajax
+            var nm = $(this).closest("tr").data("name")
+            var filename = $(this).closest("tr").data("file")
+            var textbod = $(this).closest("tr").data("body")
+            var align = $(this).closest("tr").data("align")
+            var clas = $(this).closest("tr").data("class")
+            var race = $(this).closest("tr").data("race")
+            var mp = $(this).closest("tr").data("map")
+            var descr = $(this).closest("tr").data("descrip")
+            
+            //lsit of variables made above
+            var vars = [userid, nm, filename, textbod, align, clas, race, 
+                mp, descr]
+            //list of text to go in view box 
+            var labs = ["Creator", "Name", "File", "Text", "Alignment", 
+                "Class", "Race", "Map", "Description"]
+            //list of element ids from the (kind)feat div above 
+            var elms = ["#{{key}}uid", "#{{key}}name", "#{{key}}file", 
+                "#{{key}}body", "#{{key}}align", "#{{key}}class", 
+                "#{{key}}race", "#{{key}}map", "#{{key}}descrip"]
+            
+            //if piece of data exists for an item, update the corresponding text
+            var i
+            for (i=0; i < vars.length; i++){
+                if (vars[i]!="None" && vars[i]!=""){
+                    $(elms[i]).text(labs[i]+ ": " + vars[i])
+                }
+            }
+            
+            //if piece of data exists for an item, show text
+            for (i=0; i < vars.length; i++){
+                if (vars[i]!="None" && vars[i]!=""){
+                    $(elms[i]).show()
+                }
+            }
+            
+            //show full view info div
+            $('#{{key}}feat').slideDown()
+        })
+        
+        //when a user clicks "change permissions" for an item, show the
+        //corresponding form in the next row of the table
+        $("#{{key}} .perms-button").on('click', "", function(event) {
+            $(this).closest("tr").next("tr").show()
+        })   
+        
+        </script>
+        
+    {% endfor %}
+    
+{% endblock %}
+
