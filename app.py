@@ -89,7 +89,7 @@ def register():
             hashed = bcrypt.hashpw(pass1.encode('utf-8'), bcrypt.gensalt())
             conn = queries.getConn(DATABASE)
             try:
-                uid = queries.registerUser(conn,username,pass1)
+                uid = queries.registerUser(conn,username,hashed)
             except:
                 flash("There was an error registering user")
                 return redirect(url_for("register"))
@@ -238,12 +238,18 @@ def campPage():
             flash("The permissions on the " + kind + " " + nm + " have been updated.")
             return render_template('camp_page.html',  campName=name, comps=all_items_new, isDM=isDM)
         #if user selected to update an item
+        elif request.form["submit"]=="Notes":
+            return redirect(url_for('addItem', key="Notes"))
+        elif request.form["submit"]=="Character":
+            return redirect(url_for('addItem', key="Character"))
+        elif request.form["submit"]=="Towns":
+            return redirect(url_for('addItem', key="Towns"))
         else:
             #get info on the item they are updating
             kind = request.form.get("key")
             cid = request.form.get("cid")
             #redirect to update page
-            return redirect(url_for('updateItem', cid=cid, key=kind))
+            return redirect(url_for('updateItem', key=kind, cid=cid))
             
 @app.route('/addType/', methods=["GET","POST"])
 def newType():
@@ -268,46 +274,47 @@ def newType():
 @app.route('/update/<key>/<cid>', methods=['POST', 'GET'])
 @app.route('/update/', methods=['POST', 'GET'])
 def updateItem(key, cid):
-    if request.method == "GET":
-        conn = pb_view.getConn('pbmod')
-        curs = conn.cursor(MySQLdb.cursors.DictCursor)
-        if key == "character":
-            updateCharacter(cid)
-            return redirect(url_for('updateItem', key = "character", cid = cid))
-        if key == "towns":
-            updateTown(cid)
-            return redirect(url_for('updateItem', key = "town", cid = cid))
-        if key == "notes":
-            updateNote(cid)
-            return redirect(url_for('updateItem', key = "notes", cid = cid))
+    conn = pb_view.getConn('pbmod')
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    if key == "Character":
+        return updateCharacter(cid)
+        
+    if key == "Towns":
+        return updateTown(cid)
+        
+    if key == "Notes":
+        
+        return updateNote(cid)
+        
+    flash('invalid key: '+key)
+    print('invalid key: '+key)
+    return redirect(request.referrer)
     
             
        
-        
-
-
 def updateCharacter(cid):  # use optional arg 
     
     if request.method == "GET":
         conn = pb_view.getConn('pbmod')
         curs = conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('''select * from `character` where cid = %s''', [cid])
-        results = curs.fetchone
+        results = curs.fetchone()
         return render_template('characterform.html', character = results)
     else: 
         submit = request.form.get('submit')
-        conn = getConn('pbmod')
+        conn = pb_view.getConn('pbmod')
         curs = conn.cursor(MySQLdb.cursors.DictCursor)
         if submit == 'delete':
             curs.execute('''delete from `character` where cid = %s''', [cid])
             return redirect(url_for('campaign'))
         elif submit=='update':
             name = request.form.get('character-name')
+            print(name)
             cclass = request.form.get('cclass')
             race = request.form.get('race')
             alignment = request.form.get('alignment')
-            curs.execute('''update `characters` set name = %s, class = %s, race = %s, alignment = %s where cid = %s''', [name, cclass, race, alignment, cid])
-            return redirect(url_for('updateItem', tid=tid))
+            curs.execute('''update `character` set name = %s, class = %s, race = %s, alignment = %s where cid = %s''', [name, cclass, race, alignment, cid])
+            return redirect(url_for('updateItem',key = "Character", cid=cid))
             
     
 
@@ -325,37 +332,117 @@ def updateTown(tid):  # use optional arg
         curs = conn.cursor(MySQLdb.cursors.DictCursor)
         if submit == 'delete':
             curs.execute('''delete from towns where tid = %s''', [tid])
-            return redirect(url_for('campaign'))
+            return redirect(url_for('campPage'))
         elif submit=='update':
             name = request.form.get('town-name')
             descrip = request.form.get('towndescr')
             map = request.form.get('townmap')
             curs.execute('''update towns set name = %s, descrip = %s, map = %s where tid = %s''', [name, descrip, map, tid])
-            return redirect(url_for('updateTown', tid=tid))    
+        return redirect(url_for('updateItem',key = "Towns", cid=tid))    
 
-@app.route('/updatenote/<nid>', methods=['POST', 'GET'])
-@app.route('/updatenote/', methods=['POST', 'GET'])
+
 def updateNote(nid):  # use optional arg     
     if request.method == "GET":
         conn = pb_view.getConn('pbmod')
         curs = conn.cursor(MySQLdb.cursors.DictCursor)
         curs.execute('''select * from notes where nid = %s''', [nid])
         results = curs.fetchone()
+        print ("We got here")
         return render_template('notesform.html', notes = results)
     else: 
         submit = request.form.get('submit')
-        conn = getConn('pbmod')
+        conn = pb_view.getConn('pbmod')
         curs = conn.cursor(MySQLdb.cursors.DictCursor)
         if submit == 'delete':
             curs.execute('''delete from notes where nid = %s''', [nid])
-            return redirect(url_for('campaign'))
+            return redirect(url_for('campPage'))
         elif submit=='update':
             name = request.form.get('Note-name')
-            body = request.form.get('nbody') 
+            body = request.form.get('body') 
            
-            curs.execute('''update notes set name = %s, body = %s, where nid = %s''', [name, body, nid])
-            return redirect(url_for('updateNote', nid=nid))
+            curs.execute('''update notes set name = %s, body = %s where nid = %s''', [name, body, nid])
+            return redirect(url_for('updateItem', key = 'Notes',cid=nid))
+
+
+@app.route('/add/<key>', methods = ['POST', 'GET'])
+def addItem(key):
+    if request.method == 'GET':
+        if key == "Character":
+            return render_template('addcharacter.html')
+        if key == "Towns":
+            return render_template('addtown.html')
+        if key == "Notes":
+            return render_template('addnote.html')
+    elif request.method == 'POST':
+        if key == "Character":
+            return addChar(key)
+        if key == "Towns":
+            return addTown(key)
+        if key == "Notes":
+            return addNote(key)
             
+def addNote(key):
+    conn = pb_view.getConn('pbmod')
+    
+    notenm = request.form.get('notenm')
+    noteBody = request.form.get('noteBody')
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    uid = session["uid"]
+    campid = session['camp']
+    result = ""
+    if (notenm == "" or noteBody == ""):
+        result= "error:Missing Input"
+        flash(result)
+    else:
+        curs.execute('''insert into notes(nid,name, body,campid, uid) values (%s, %s, %s, %s,%s)''', 
+        [0, notenm, noteBody, campid,uid])
+        result = "Note Added"  
+        flash(result)
+    conn.commit()
+    conn.close()
+    return render_template('addnote.html', result = result)
+    
+def addChar(key):
+    conn = pb_view.getConn('pbmod')
+    characternm = request.form.get('characternm')
+    cclass = request.form.get('cclass')
+    race = request.form.get('race')
+    alignment = request.form.get('alignment')
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    uid = session["uid"]
+    campid = session['camp']
+    if (characternm == "" or cclass == "" or race =="" or alignment == ""):
+        result = "error:Missing Input"
+        flash(result)
+    else:
+        curs.execute('''insert into `character`(cid,name,class,race,alignment,campid,uid) values (%s, %s, %s, %s, %s, %s)''', 
+        [0, characternm, cclass, race, alignment, campid, uid ])
+        result = "Character Added"
+        flash(result)
+    conn.commit()
+    conn.close()
+    return render_template('addcharacter.html', result = result)
+def addTown(key):
+    conn = pb_view.getConn('pbmod')
+    townnm = request.form.get('townnm')
+    towndescr = request.form.get('towndescr')
+    townmap = request.form.get('townmap')
+    curs = conn.cursor(MySQLdb.cursors.DictCursor)
+    uid = session["uid"]
+    campid = session['camp']
+    result = ""
+    if (townnm == "" or towndescr == "" or townmap == ""):
+       result= "error:Missing Input"
+    else:
+        curs.execute('''insert into towns(tid,name,descrip,map,campid,uid) values (%s,%s, %s, %s, %s,%s)''', 
+        [0, townnm, towndescr,townmap, campid, uid])
+        result = "Town Added"
+    conn.commit()
+    conn.close()
+    return render_template('addtown.html', result = result)        
+
+
+
         
 if __name__ == '__main__':
     app.debug = True

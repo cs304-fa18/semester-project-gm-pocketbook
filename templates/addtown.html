@@ -1,0 +1,34 @@
+<!doctype html>
+<body>
+{% extends "base.html" %}
+  
+  {% block content %}
+  
+    <p><a href="{{url_for('campPage')}}">Campaign Home page</a></p>
+  
+  <h1> Add Town</h1>
+  <p>Use "None" or "null" to set a field to null</p>
+  
+  <form method=POST action="">
+        <table>
+      <tr>
+        <td><label for="town-name">Name</label></td>
+        <td><input type="text" name="townnm" id="townnm"></td>
+        
+      </tr>
+      <tr>
+        <td><label for="towndescr">Description</label></td>
+        <td><input type="text" name="towndescr" id="towndescr"></td>
+      </tr>
+      <tr>
+        <td><label for="townmap">Map</label></td>
+        <td><input type="text" name="townmap" id="townmap"></td>
+      </tr>
+      
+      
+     
+    </table>
+    <input type="submit" name="submit" value="Add Town">
+  </form>
+ </div>
+  {% endblock %}

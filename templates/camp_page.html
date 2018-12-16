@@ -22,7 +22,9 @@
         
         <h2>{{key}}</h2>
         <!--Link to add new item to campaign-->
-        <p><a href="">Add new {{ key }}</a></p>
+        <form method="POST">
+            <button type="submit" name="submit" value = "{{key}}">New {{key}}</button>
+        </form>
         
         <!--List of all features that an item can have, will show when user 
         clicks on "view info"-->

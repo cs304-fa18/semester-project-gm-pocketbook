@@ -1,0 +1,31 @@
+<!doctype html>
+<body>
+{% extends "base.html" %}
+  
+  {% block content %}
+  
+    <p><a href="{{url_for('campPage')}}">Campaign Home page</a></p>
+  
+  <h1> Add Note</h1>
+  <p>Use "None" or "null" to set a field to null</p>
+  
+  <form method=POST action="">
+        <table>
+      <tr>
+        <td><label for="note-name">Name</label></td>
+        <td><input type="text" name="notenm" id="notenm"></td>
+        
+      </tr>
+      <tr>
+        <td><label for="body">Body</label></td>
+        <td><input type="text" name="noteBody" id="noteBody"></td>
+      </tr>
+      
+      
+     
+    </table>
+    <input type="submit" name="submit" value="Add Note">
+  </form>
+ </div>
+ 
+ {% endblock %}
